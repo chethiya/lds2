@@ -1,0 +1,11 @@
+{
+  "name": "lds",
+  "version": "2.0.0",
+  "description": "LargeDS - Large data structures for JS",
+  "main": "dist/lds.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Chethiya Abeysinghe",
+  "license": "MIT"
+}
