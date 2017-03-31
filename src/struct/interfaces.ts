@@ -12,14 +12,16 @@ export interface Attribute {
 };
 
 export interface Value {
- [prop: string]: Types.Value;
+ [prop: string]: Types.Value | Types.Value[];
 }
 
 export interface Struct {
- /*set: (value: ValueObject, attribute?: number, index?: number) => void;
- setStruct: (source: StructInterface) => void;
- copy: (source: StructInterface) => void;*/
- get: () => Value;
+ set(value: Value | Types.Value | Types.Value[], attr?: number,
+  index?: number) : Struct;
+ get(attr?: number, index?: number) : Value | Types.Value |
+  Types.Value[]
+ //setStruct: (source: StructInterface) => void;
+ //copy: (source: StructInterface) => void;*/
  [prop: string]: any;
 };
 

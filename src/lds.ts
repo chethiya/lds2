@@ -20,15 +20,28 @@ else if (window) {
 
 // Test
 let Person = Struct([
- {name: 'name', type: Types.String, length: 1},
+ {name: 'name', type: Types.Int32, length: 3},
  {name: 'age', type: Types.Uint8},
  {name: 'height', type: Types.Float32}
 ]);
 
-let p : Interfaces.Struct = new Person();
+let p : Interfaces.Struct = new Person({
+ name: [1, 2, 3],
+ age: 29,
+ height: 160
+});
+console.log(p.get());
 console.log(p.name);
-p.name = 'chethiya abeysinghe';
+p.name = [4, 5, 6];
+console.log(p.get());
+console.log(p.name);
+p.age = 31;
+console.log(p.age);
 console.log(p.get());
 
-console.log(Types.Float32, Types.Type[Types.Float32]);
-console.log(typeof Person);
+p.set(100, Person._NAME, 2);
+console.log(p.get(Person._NAME, 2));
+console.log(p.get());
+p.set([9, 9], Person._NAME);
+console.log(p.get());
+

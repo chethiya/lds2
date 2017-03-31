@@ -87,11 +87,19 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
 
  /* Struct class that will be returned */
  class StructClass implements Interfaces.Struct  {
-  _obj: ValueObject; //TODO
-  private _isObj: boolean = false; //TODO
+  private _obj: Interfaces.Value;
+  private _isObj: boolean = false;
   private _views: Types.View[];
   private _pos: number;
   private _len: number;
+
+  static readonly Id: number = Id;
+  static readonly Offset: number[] = Offset;
+  static readonly Bytes: number[] = Bytes;
+  static readonly Length: number[] = Length;
+  static readonly Name: string[] = Name;
+  static readonly Type: Types.Type[] = Type;
+  static readonly N: number = N;
 
   constructor(value?: Interfaces.Value, views?: Types.View[],
   pos?: number, len?: number) {
@@ -114,28 +122,32 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
    }
   }
 
-  public set(value: Interfaces.Value | Types.Value,
-  attr?: number, index?: number) : Interfaces.Struct {
+  public set(value: Interfaces.Value | Types.Value |
+  Types.Value[], attr?: number, index?: number)
+  : Interfaces.Struct {
    if (value != null) {
     if (attr != null) {
      this._set(value as Types.Value, attr, index);
     } else {
-     this._obj = value as Interfaces.Value;
-     this._isObj = true;
      for (let i = 0; i < N; ++i) {
       if ((value as Interfaces.Value)[Name[i]] != null) {
        this._set((value as Interfaces.Value)[Name[i]], i);
+      } else {
+       throw new Error(`Missing attribute ${Name[i]} passed ` +
+       `to set(): ${value}`);
       }
      }
+     this._obj = value as Interfaces.Value;
+     this._isObj = true;
     }
    }
    return this;
   }
 
-  private _set(value: Types.Value, attr: number, index?: number) {
+  private _set(value: Types.Value | Types.Value[], attr: number,
+  index?: number) {
    if (Length[attr] == 1) {
-    this._views[attr][this._pos] = value;
-
+    this._views[attr][this._pos] = value as Types.Value;
    } else {
     let offset = this._pos * Length[attr];
     if (Array.isArray(value)) {
@@ -148,19 +160,56 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
      this._views[attr][offset + index] = value;
     }
    }
+   this._isObj = false;
   }
 
-  public get() : Interfaces.Value {
+  public get(attr?: number, index?: number) : Interfaces.Value |
+  Types.Value | Types.Value[] {
+   if (attr != null) {
+    return this._get(attr, index);
+   } else if (!this._isObj) {
+    if (this._obj == null) {
+     this._obj = new ValueObject();
+    }
+    for (let i=0; i<N; ++i) {
+     this._obj[Name[i]] = this._get(i);
+    }
+   }
    return this._obj;
+  }
+
+  private _get(attr: number, index?: number): Types.Value |
+  Types.Value[] {
+   if (Length[attr] == 1) {
+    return this._views[attr][this._pos];
+   } else if (index != null) {
+    return this._views[attr][this._pos * Length[attr] + index];
+   } else {
+    let arr: Types.Value[] = new Array(Length[attr]);
+    let offset: number = this._pos * Length[attr];
+    for (let j=0; j<Length[attr]; ++j) {
+     arr[j] = this._views[attr][offset + j];
+    }
+    return arr;
+   }
   }
  }
 
  // setter and getters
- Attrs.forEach(attr => {
+ Attrs.forEach((attr, i) => {
+  // Attribute indices
+  (StructClass as any)[`_${attr.name.toUpperCase()}`] = i;
+
+  // Attribute setters and getters
   Object.defineProperty(StructClass.prototype, attr.name, {
-   set: function(this:  StructClass, val: Types.Value) {
-    this._obj[attr.name] = val;
-   }
+   set: function(this:  StructClass,
+    value: Types.Value | Types.Value[]) : void {
+     (this as any)._set(value, i);
+    },
+   get: function(this: StructClass) : Types.Value |
+    Types.Value[] {
+     return (this as any)._get(i);
+    }
   });
  });
 
@@ -168,244 +217,3 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
 }
 
 export {Interfaces as Interfaces};
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-
-
-Struct = ->
- id = null
- name = null
- properties = []
- titleCasePropperties = []
- types = []
- lengths = []
- offsets = []
- n = 0
- bytes = 0
- maxBytesPerProp = 0
-
- if typeof arguments[0] isnt 'string' or arguments[0].length is 0
-  throw new Error 'No name for the struct'
- name = arguments[0]
- if names[name]?
-  throw new Error "An Struct already defined with name: #{name}"
- names[name] = namesCnt
- id = namesCnt++
-
- for k, v of arguments
-  if v?.property? and v?.type? and
-  (typeof v.property is 'string') and (typeof v.type is 'number') and
-  v.type >= 0 and v.type < nTypes and (v.type is parseInt v.type)
-   properties.push v.property
-   types.push v.type
-   offsets.push bytes
-
-   if v.length? and (typeof v.length is 'number') and
-   (v.length > 0) and (v.length is parseInt v.length)
-    lengths.push v.length
-    bytes += TypeLenghts[v.type] * v.length
-    maxBytesPerProp = Math.max maxBytesPerProp, TypeLenghts[v.type] * v.length
-   else
-    lengths.push 1
-    bytes += TypeLenghts[v.type]
-    maxBytesPerProp = Math.max maxBytesPerProp, TypeLenghts[v.type]
-   n++
-
- if n is 0
-  throw new Error Strings.NO_PROPERTIES name
-
- class RawObject
-  constructor: ->
-   for k, i in properties
-    if lengths[i] is 1
-     this[k] = null
-    else
-     this[k] = new Array lengths[i]
-
- class StructClass
-  constructor: (obj, views, pos, viewLen) ->
-   @id = id
-   if views?
-    @views = views
-    @pos = pos
-    @viewLen = viewLen
-   else
-    @pos = 0
-    @views = []
-    @viewLen = 1
-    for t, i in types
-     buffer = new ArrayBuffer TypeLenghts[t] * lengths[i]
-     @views.push new TypeArrays[t][0] buffer
-   if obj?
-    @set obj
-
-  set: (obj) ->
-   if obj?
-    for k, i in properties
-     if obj[k]?
-      @set_prop i, obj[k]
-   return
-
-  get: ->
-   o = new RawObject()
-   for k, i in properties
-    o[k] = @get_prop i
-   o
-
-  set_prop: (v, i, j, string_ref) ->
-   if types[i] is Types.String
-    if lengths[i] is 1
-     if string_ref is on
-      s = v
-      s.retain()
-     else
-      s = new StringClass v
-     StringAlloc.release @views[i][@pos*2], @views[i][@pos*2+1]
-     @views[i][@pos*2] = s.x
-     @views[i][@pos*2+1] = s.y
-    else
-     k1 = @pos*lengths[i]*2
-     if j?
-      if string_ref is on
-       s = v
-       s.retain()
-      else
-       s = new StringClass v
-      StringAlloc.release @views[i][k1 + j*2], @views[i][k1 + j*2 + 1]
-      @views[i][k1 + j*2] = s.x
-      @views[i][k1 + j*2 + 1] = s.y
-     else
-      l = Math.min lengths[i], v.length
-      for j in [0...l]
-       if string_ref is on
-        s = v
-        s.retain()
-       else
-        s = new StringClass v[j]
-       StringAlloc.release @views[i][k1 + j*2], @views[i][k1 + j*2 + 1]
-       @views[i][k1 + j*2] = s.x
-       @views[i][k1 + j*2 + 1] = s.y
-   else
-    if lengths[i] is 1
-     @views[i][@pos] = v
-    else
-     k1 = @pos*lengths[i]
-     if j?
-      @views[i][k1 + j] = v
-     else
-      l = Math.min lengths[i], v.length
-      for j in [0...l]
-       @views[i][k1 + j] = v[j]
-   return
-
-  get_prop: (i, j, string_ref) ->
-   res = null
-   if lengths[i] is 1
-    if types[i] is Types.String
-     s = new StringClass null, @views[i][@pos*2], @views[i][@pos*2+1]
-     if string_ref is on
-      res = s
-     else
-      res = s.toString()
-      s.release()
-    else
-     res = @views[i][@pos]
-   else
-    if j?
-     if types[i] is Types.String
-      k1 = @pos*lengths[i]*2
-      s = new StringClass null, @views[i][k1 + j*2], @views[i][k1 + j*2 + 1]
-      if string_ref is on
-       res = s
-      else
-       res = s.toString()
-       s.release()
-     else
-      k1 = @pos * lengths[i]
-      res = @views[i][k1 + j]
-    else
-     res = new Array lengths[i]
-     if types[i] is Types.String
-      k1 = @pos*lengths[i]*2
-      for j in [0...lengths[i]]
-       s = new StringClass null, @views[i][k1 + j*2], @views[i][k1 + j*2 + 1]
-       if string_ref is on
-        res[j] = s
-       else
-        res[j] = s.toString()
-        s.release()
-     else
-      k1 = @pos*lengths[i]
-      for j in [0...lengths[i]]
-       res[j] = @views[i][k1 + j]
-   res
-
-  copyFrom: (struct) ->
-   if @id isnt struct.id
-    return off
-   for t, i in types
-    k1 = lengths[i] * TypeArrays[t][1]
-    k2 = TypeArrays[t][1]
-    for j in [0...lengths[i]]
-     p = @pos * k1 + j * k2
-     if t is Types.String
-      StringAlloc.release @views[i][p], @views[i][p+1]
-     for k in [0...k2]
-      @views[i][p+k] = struct.views[i][struct.pos*k1 + j*k2 + k]
-     if t is Types.String
-      StringAlloc.retain @views[i][p], @views[i][p+1]
-   return true
-
-  next: ->
-   if @pos < @viewLen-1
-    @pos++
-    return on
-   else
-    return off
-
-  prev: ->
-   if @pos > 0
-    @pos--
-    return on
-   else
-    return off
-
- for k, i in properties
-  StructClass[k.toUpperCase()] = i
-  code = k.charCodeAt 0
-  tcase = k
-  if code <= 122 and code >= 97
-   tcase = (k.substr 0, 1).toUpperCase() + k.substr 1
-  titleCasePropperties.push tcase
-  do (i) ->
-   StructClass.prototype["set#{tcase}"] = (val, j, string_ref) ->
-    @set_prop val, i, j, string_ref
-
-   StructClass.prototype["get#{tcase}"] = (j, string_ref) ->
-    @get_prop i, j, string_ref
-
- StructClass.id = id
- StructClass.name = name
- StructClass.properties = properties
- StructClass.titleCasePropperties = titleCasePropperties
- StructClass.types = types
- StructClass.lengths = lengths
- StructClass.offsets = offsets
- StructClass.n = n
- StructClass.bytes = bytes
- StructClass.maxBytesPerProp = maxBytesPerProp
- StructClass.Object = RawObject
- StructClass
-
- */
