@@ -17,11 +17,10 @@ export interface Value {
 
 export interface Struct {
  set(value: Value | Types.Value | Types.Value[], attr?: number,
-  index?: number) : Struct;
+  index?: number) : void;
  get(attr?: number, index?: number) : Value | Types.Value |
   Types.Value[]
- //setStruct: (source: StructInterface) => void;
- //copy: (source: StructInterface) => void;*/
+ copyFrom: (source: Struct) => boolean;
  [prop: string]: any;
 };
 

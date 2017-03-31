@@ -1,6 +1,6 @@
 export let Uint8 = 0;
-export let Int16 = 2;
-export let Int32 = 1;
+export let Int16 = 1;
+export let Int32 = 2;
 export let Float32 = 3;
 export let Float64 = 4;
 export let String = 5;
@@ -40,7 +40,7 @@ export let TypedArray : [any, number][] = [
  [Int32Array, 2]
 ];
 
-export let Length = [
+export let Bytes = [
  1,
  2,
  4,

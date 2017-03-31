@@ -22,7 +22,7 @@ else if (window) {
 let Person = Struct([
  {name: 'name', type: Types.Int32, length: 3},
  {name: 'age', type: Types.Uint8},
- {name: 'height', type: Types.Float32}
+ {name: 'height', type: Types.Float64}
 ]);
 
 let p : Interfaces.Struct = new Person({
@@ -45,3 +45,9 @@ console.log(p.get());
 p.set([9, 9], Person._NAME);
 console.log(p.get());
 
+let p2: Interfaces.Struct = new Person();
+console.log(p2.get());
+p2.copyFrom(p);
+console.log(p2.get());
+p.height = 23.3;
+console.log(p.get(), p2.get());

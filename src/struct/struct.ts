@@ -49,10 +49,12 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
  let Id: number = ++lastId;
  let Offset: number[] = [];
  let Bytes: number[] = [];
+ let Counts: number[] = [];
  let Length: number[] = [];
  let Name: string[] = [];
  let Type: Types.Type[] = [];
  let N: number = 0;
+ let MaxBytes = 0;
 
  // Init struct constants
  N = Attrs.length;
@@ -61,12 +63,11 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
   Name.push(attr.name);
   Type.push(attr.type);
   Length.push(attr.length as number);
-  Bytes.push(Types.Length[attr.type] * (attr.length as number));
-  if (i < N - 1) {
-   Offset.push(Offset[i] + Bytes[i]);
-  }
+  Counts.push(Types.TypedArray[attr.type][1] * (attr.length as number));
+  Bytes.push(Types.Bytes[attr.type] * (attr.length as number));
+  Offset.push(Offset[i] + Bytes[i]);
  });
-
+ MaxBytes = Math.max.apply(Math, Bytes);
 
 
  /* ValueObejct that's returned from get() method */
@@ -87,6 +88,7 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
 
  /* Struct class that will be returned */
  class StructClass implements Interfaces.Struct  {
+  private readonly _id: number = Id;
   private _obj: Interfaces.Value;
   private _isObj: boolean = false;
   private _views: Types.View[];
@@ -95,11 +97,13 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
 
   static readonly Id: number = Id;
   static readonly Offset: number[] = Offset;
+  static readonly Counts: number[] = Counts;
   static readonly Bytes: number[] = Bytes;
   static readonly Length: number[] = Length;
   static readonly Name: string[] = Name;
   static readonly Type: Types.Type[] = Type;
   static readonly N: number = N;
+  static readonly MaxBytes: number = MaxBytes;
 
   constructor(value?: Interfaces.Value, views?: Types.View[],
   pos?: number, len?: number) {
@@ -107,9 +111,23 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
     this._views = []
     this._pos = 0
     this._len = 1
+    /* Note : Having multiple ArrayBuffers for each attribute is going to
+    result in largest attribute the bottleneck max possible elements in an
+    Array. Alternative is to share one ArrayBuffer for all attributes.
+
+    But that needs aligining types with respective # bytes.
+    e.g. Int32 view should start at a 4 byte offset in the ArrayBuffer
+         Float64 view should start at an 8 byte offset in the ArrayBuffer.
+
+    This behaviour require wasting few bytes in between. It's neglectable when
+    Array size is large. Anyway decided against using that for now considering
+    the trouble of aligning attributes when creating an Array.
+
+    This is an option to consider lateron.
+    */
     for (let i=0; i < N; ++i) {
      let buffer =
-      new ArrayBuffer(Types.Length[Type[i]] * Length[i]);
+      new ArrayBuffer(Bytes[i]);
      this._views.push(new Types.TypedArray[Type[i]][0](buffer));
     }
    } else {
@@ -124,7 +142,7 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
 
   public set(value: Interfaces.Value | Types.Value |
   Types.Value[], attr?: number, index?: number)
-  : Interfaces.Struct {
+  : void {
    if (value != null) {
     if (attr != null) {
      this._set(value as Types.Value, attr, index);
@@ -141,7 +159,6 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
      this._isObj = true;
     }
    }
-   return this;
   }
 
   private _set(value: Types.Value | Types.Value[], attr: number,
@@ -192,6 +209,30 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
     }
     return arr;
    }
+  }
+
+  public copyFrom(ref: StructClass) : boolean {
+   if (this._id != ref._id) {
+    return false;
+   }
+
+   if (ref._isObj) {
+    this._isObj = true;
+    this._obj = ref._obj;
+   }
+
+   let s, t : number = 0;
+   for (let i=0; i < N; ++i) {
+    // Note: copy() method  in ArrayBuffer would be have been nice
+    s = this._pos * Counts[i];
+    t = ref._pos * Counts[i];
+    for (let j=0; j < Counts[i]; ++j, ++s, ++t) {
+     this._views[i][s] = ref._views[i][t];
+    }
+
+    //TODO if type is string release string references
+   }
+   return true;
   }
  }
 
