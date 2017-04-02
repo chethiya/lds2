@@ -2,20 +2,30 @@ import * as Types from './types';
 import {Struct, Interfaces} from './struct/struct';
 
 let LDS = {
- Types: Types
+ Types: {
+  Uint8: Types.Uint8,
+  Int16: Types.Int16,
+  Int32: Types.Int32,
+  Float32: Types.Float32,
+  Float64: Types.Float64,
+  String: Types.String
+ },
+ Struct: Struct,
+ StructInterface: (Interfaces as any).StructContructable
 }
 
 declare let module: any;
 declare var define: any;
 
 if (typeof module !== "undefined" && module.exports) {
- module.exports["LDS"] = LDS;
+ module.exports = LDS;
 } else if (typeof define === 'function' && define.amd) { // AMD or RequireJS
  define(() => LDS);
 }
 else if (window) {
  (window as any)["LDS"] = LDS;
 }
+
 
 
 // Test

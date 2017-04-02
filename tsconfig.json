@@ -9,7 +9,6 @@
   "noImplicitReturns": true,
   "noImplicitThis": true,
   "strictNullChecks": true,
-  "sourceMap": true,
   "inlineSourceMap": true,
   "outDir": "dist"
  }
