@@ -83,7 +83,14 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
    (ValueObject.prototype as any)[attr.name] = 0;
   }
  });
-
+ (ValueObject.prototype as any).toJSON =
+  function(this: ValueObject) : Object {
+   let res: any = {};
+   for (let i=0; i<N; ++i) {
+    res[Name[i]] = this[Name[i]];
+   }
+   return res;
+  };
 
 
  /* Struct class that will be returned */
@@ -215,15 +222,10 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
    if (this._id != ref._id) {
     return false;
    }
-
-   if (ref._isObj) {
-    this._isObj = true;
-    this._obj = ref._obj;
-   }
-
+   ref._isObj = false;
    let s, t : number = 0;
    for (let i=0; i < N; ++i) {
-    // Note: copy() method  in ArrayBuffer would be have been nice
+    // Note: a copy() method in ArrayBuffer would be have been nice
     s = this._pos * Counts[i];
     t = ref._pos * Counts[i];
     for (let j=0; j < Counts[i]; ++j, ++s, ++t) {
