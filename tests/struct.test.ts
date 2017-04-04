@@ -17,27 +17,27 @@ describe("Struct", function () {
    height: 160
   });
 
-  expect(p.get()).toEqual({
+  expect((p.get() as Interfaces.Value).toJSON()).toEqual({
    name: [1, 2, 3], age: 29, height: 160
   });
   expect(p.name).toEqual([1, 2, 3]);
   p.name = [4, 5, 6];
-  expect(p.get()).toEqual({
+  expect((p.get() as Interfaces.Value).toJSON()).toEqual({
    name: [4, 5, 6], age: 29, height: 160
   });
   expect(p.name).toEqual([4, 5, 6]);
   p.age = 31;
   expect(p.age).toEqual(31);
-  expect(p.get()).toEqual({
+  expect((p.get() as Interfaces.Value).toJSON()).toEqual({
    name: [4, 5, 6], age: 31, height: 160
   });
   p.set(100, Person._NAME, 2);
   expect(p.get(Person._NAME, 2)).toEqual(100);
-  expect(p.get()).toEqual({
+  expect((p.get() as Interfaces.Value).toJSON()).toEqual({
    name: [4, 5, 100], age: 31, height: 160
   });
   p.set([9, 9], Person._NAME);
-  expect(p.get()).toEqual({
+  expect((p.get() as Interfaces.Value).toJSON()).toEqual({
    name: [9, 9, 100], age: 31, height: 160
   });
  });
@@ -50,20 +50,20 @@ describe("Struct", function () {
   });
   let p2: Interfaces.Struct = new Person();
 
-  expect((p2.get() as any).toJSON()).toEqual({
+  expect((p2.get() as Interfaces.Value).toJSON()).toEqual({
    name: [0, 0, 0], age: 0, height: 0
   });
 
   p2.copyFrom(p);
-  expect((p2.get() as any).toJSON()).toEqual({
+  expect((p2.get() as Interfaces.Value).toJSON()).toEqual({
    name: [1, 2, 3], age: 29, height: 160
   });
   p.height = 23.3;
   expect(p.height).toEqual(23.3);
-  expect((p.get() as any).height).toEqual(23.3);
+  expect((p.get() as Interfaces.Value).height).toEqual(23.3);
 
   expect(p2.height).toEqual(160);
-  expect((p2.get() as any).height).toEqual(160);
+  expect((p2.get() as Interfaces.Value).height).toEqual(160);
  })
 });
 

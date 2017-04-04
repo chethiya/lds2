@@ -11,19 +11,24 @@ export interface Attribute {
  options?: Options;
 };
 
-export interface Value {
+export interface ValueRow {
  [prop: string]: Types.Value | Types.Value[];
+}
+
+export interface Value {
+ [prop: string]: Types.Value | Types.Value[] | (() => Object);
+ toJSON: () => Object;
 }
 
 export interface Struct {
  set(value: Value | Types.Value | Types.Value[], attr?: number,
-  index?: number) : void;
- get(attr?: number, index?: number) : Value | Types.Value |
+  index?: number): Struct;
+ get(attr?: number, index?: number): Value | Types.Value |
   Types.Value[]
- copyFrom: (source: Struct) => boolean;
+ copyFrom: (source: Struct) => Struct;
  [prop: string]: any;
 };
 
 export interface StructContructable extends Struct {
- new(value?: Value): Struct;
+ new (value?: Value): Struct;
 }

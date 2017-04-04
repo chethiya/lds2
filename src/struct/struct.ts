@@ -17,22 +17,21 @@ function validateAttr(attrs: Interfaces.Attribute[]) : void {
   throw new Error(`Invalid struct definition ${attrs}`);
  }
  attrs.forEach(attr => {
-  // Test name
+  // Check name
   if (attr.name == null || typeof attr.name != 'string' ||
   attr.name.length == 0 || !nameRegex.test(attr.name) ||
   invalidMap[attr.name]) {
    throw new Error(`Invalid attribute name: ${attr.name}`);
   }
 
-
-  // Test type
+  // Check type
   if (attr.type == null || typeof attr.type != 'number' ||
   attr.type < 0 || attr.type >= Types.nTypes || Types.Type[attr.type] == null) {
    throw new Error(`Invalid type in attribute ${attr.name}: ${attr.type} -> ` +
    `${Types.Type[attr.type]}`);
   }
 
-  // Test length
+  // Check length
   if (attr.length != null &&
   (typeof attr.length != 'number' || attr.length < 1 ||
   attr.length != Math.floor(attr.length))) {
@@ -72,8 +71,15 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
 
  /* ValueObejct that's returned from get() method */
  class ValueObject implements Interfaces.Value {
-  [prop: string]: Types.Value;
+  [prop: string]: Types.Value | Types.Value[] | (() => Object);
   constructor() {
+  }
+  public toJSON(): Object {
+   let res: any = {};
+   for (let i = 0; i < N; ++i) {
+    res[Name[i]] = this[Name[i]];
+   }
+   return res;
   }
  }
  Attrs.forEach(attr => {
@@ -83,21 +89,11 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
    (ValueObject.prototype as any)[attr.name] = 0;
   }
  });
- (ValueObject.prototype as any).toJSON =
-  function(this: ValueObject) : Object {
-   let res: any = {};
-   for (let i=0; i<N; ++i) {
-    res[Name[i]] = this[Name[i]];
-   }
-   return res;
-  };
 
 
  /* Struct class that will be returned */
  class StructClass implements Interfaces.Struct  {
   private readonly _id: number = Id;
-  private _obj: Interfaces.Value;
-  private _isObj: boolean = false;
   private _views: Types.View[];
   private _pos: number;
   private _len: number;
@@ -149,23 +145,22 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
 
   public set(value: Interfaces.Value | Types.Value |
   Types.Value[], attr?: number, index?: number)
-  : void {
-   if (value != null) {
-    if (attr != null) {
-     this._set(value as Types.Value, attr, index);
-    } else {
-     for (let i = 0; i < N; ++i) {
-      if ((value as Interfaces.Value)[Name[i]] != null) {
-       this._set((value as Interfaces.Value)[Name[i]], i);
-      } else {
-       throw new Error(`Missing attribute ${Name[i]} passed ` +
-       `to set(): ${value}`);
-      }
+  : Interfaces.Struct {
+   if (attr != null) {
+    this._set(value as Types.Value, attr, index);
+   } else if (value == null || typeof value != "object") {
+    throw(new Error(`Invalid vlaue passed into set: ${value}`))
+   } else {
+    for (let i = 0; i < N; ++i) {
+     if ((value as Interfaces.Value)[Name[i]] != null) {
+      this._set((value as Interfaces.ValueRow)[Name[i]], i);
+     } else {
+      throw new Error(`Missing attribute ${Name[i]} passed ` +
+      `to set(): ${value}`);
      }
-     this._obj = value as Interfaces.Value;
-     this._isObj = true;
     }
    }
+   return this;
   }
 
   private _set(value: Types.Value | Types.Value[], attr: number,
@@ -184,22 +179,19 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
      this._views[attr][offset + index] = value;
     }
    }
-   this._isObj = false;
   }
 
   public get(attr?: number, index?: number) : Interfaces.Value |
   Types.Value | Types.Value[] {
    if (attr != null) {
     return this._get(attr, index);
-   } else if (!this._isObj) {
-    if (this._obj == null) {
-     this._obj = new ValueObject();
-    }
+   } else {
+    let obj : Interfaces.Value = new ValueObject();
     for (let i=0; i<N; ++i) {
-     this._obj[Name[i]] = this._get(i);
+     obj[Name[i]] = this._get(i);
     }
+    return obj;
    }
-   return this._obj;
   }
 
   private _get(attr: number, index?: number): Types.Value |
@@ -218,11 +210,10 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
    }
   }
 
-  public copyFrom(ref: StructClass) : boolean {
+  public copyFrom(ref: StructClass) : Interfaces.Struct {
    if (this._id != ref._id) {
-    return false;
+    throw new Error("Copying from incompativle struct");
    }
-   ref._isObj = false;
    let s, t : number = 0;
    for (let i=0; i < N; ++i) {
     // Note: a copy() method in ArrayBuffer would be have been nice
@@ -234,7 +225,7 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
 
     //TODO if type is string release string references
    }
-   return true;
+   return this;
   }
  }
 
