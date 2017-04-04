@@ -22,15 +22,12 @@ gulp.task("default", function () {
   .pipe(sourcemaps.init())
   .pipe(tsProject())
   .js
-  .pipe(sourcemaps.write({
-      // Return relative source map root directories per file.
-      sourceRoot: function (file) {
-        var sourceFile = PATH.join(file.cwd, file.sourceMap.file);
-        console.log(file.cwd, file.sourceMap.file, PATH.dirname(sourceFile));
-        console.log(PATH.relative(PATH.dirname(sourceFile), file.cwd));
-        return PATH.relative(PATH.dirname(sourceFile), file.cwd);
-      }
-    }))
+  .pipe(sourcemaps.write(".", {
+   sourceRoot: function (file) {
+    var sourceFile = PATH.join(file.cwd, file.sourceMap.file);
+    return PATH.relative(PATH.dirname(sourceFile), file.cwd);
+   }
+  }))
   .pipe(gulp.dest("dist"));
 });
 
