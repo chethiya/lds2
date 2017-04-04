@@ -8,6 +8,7 @@ var buffer = require('vinyl-buffer');
 var jasmine = require('gulp-jasmine');
 var ts = require("gulp-typescript");
 var tsProject = ts.createProject("tsconfig.json");
+var PATH = require('path');
 
 /*
 gulp.task("copy-html", function () {
@@ -17,46 +18,23 @@ gulp.task("copy-html", function () {
 */
 
 gulp.task("default", function () {
- return browserify({
-  basedir: '.',
-  debug: true,
-  entries: ['src/main.ts'],
-  cache: {},
-  packageCache: {}
- })
-  .plugin(tsify)
-  .bundle()
-  .pipe(source('bundle.js'))
-  .pipe(buffer())
-  .pipe(sourcemaps.init({ loadMaps: true }))
-  .pipe(uglify())
-  .pipe(sourcemaps.write('./'))
-  .pipe(gulp.dest("dist/js"));
-});
-
-gulp.task('test', function () {
- tsProject.src()
+ return tsProject.src()
   .pipe(sourcemaps.init())
   .pipe(tsProject())
   .js
-  //.pipe(sourcemaps.init())
-  .pipe(sourcemaps.write("."))
-  .pipe(gulp.dest("dist/src"));
-
- gulp.src('tests/**/*.ts')
-  .pipe(sourcemaps.init())
-  .pipe(ts({
-   "module": "commonjs",
-   "target": "es5",
-   "noImplicitAny": true,
-   "noImplicitReturns": true,
-   "noImplicitThis": true,
-   "strictNullChecks": true,
-   "inlineSourceMap": true,
-  }))
-  .pipe(sourcemaps.write("."))
-  .pipe(gulp.dest('dist/tests'));
+  .pipe(sourcemaps.write({
+      // Return relative source map root directories per file.
+      sourceRoot: function (file) {
+        var sourceFile = PATH.join(file.cwd, file.sourceMap.file);
+        console.log(file.cwd, file.sourceMap.file, PATH.dirname(sourceFile));
+        console.log(PATH.relative(PATH.dirname(sourceFile), file.cwd));
+        return PATH.relative(PATH.dirname(sourceFile), file.cwd);
+      }
+    }))
+  .pipe(gulp.dest("dist"));
+});
 
 
+gulp.task('test', ["default"], function () {
  return gulp.src('dist/tests/**/*.js').pipe(jasmine());
 });

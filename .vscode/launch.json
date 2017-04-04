@@ -10,7 +10,7 @@
     "type": "node",
     "request": "launch",
     "program": "${workspaceRoot}/spec/runner.js",
-    "stopOnEntry": true,
+    "stopOnEntry": false,
     "args": [],
     "cwd": "${workspaceRoot}/",
     "runtimeExecutable": null,
