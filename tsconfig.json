@@ -1,6 +1,7 @@
 {
  "include": [
-  "./src/**/*.ts"
+  "./src/**/*.ts",
+  "./tests/**/*.ts"
  ],
  "compilerOptions": {
   "module": "commonjs",
@@ -9,7 +10,7 @@
   "noImplicitReturns": true,
   "noImplicitThis": true,
   "strictNullChecks": true,
-  "inlineSourceMap": true,
-  "outDir": "dist"
+  "sourceMap": true,
+  "outDir": "dist/"
  }
 }

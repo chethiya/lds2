@@ -7,5 +7,22 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Chethiya Abeysinghe",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jasmine": "^2.5.47",
+    "gulp": "^3.9.1",
+    "gulp-jasmine": "^2.4.2",
+    "gulp-typescript": "^3.1.6",
+    "jasmine": "^2.5.3",
+    "jasmine-core": "^2.5.2",
+    "jasmine-node": "^1.14.5",
+    "karma": "^1.5.0",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-jasmine": "^1.1.0",
+    "tsify": "^3.0.1",
+    "typescript": "^2.2.2",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.9.0"
+  }
 }

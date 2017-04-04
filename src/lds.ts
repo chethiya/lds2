@@ -1,7 +1,7 @@
 import * as Types from './types';
 import {Struct, Interfaces} from './struct/struct';
 
-let LDS = {
+export let LDS = {
  Types: {
   Uint8: Types.Uint8,
   Int16: Types.Int16,
@@ -11,7 +11,6 @@ let LDS = {
   String: Types.String
  },
  Struct: Struct,
- StructInterface: (Interfaces as any).StructContructable
 }
 
 declare let module: any;
@@ -25,8 +24,7 @@ if (typeof module !== "undefined" && module.exports) {
 else if (window) {
  (window as any)["LDS"] = LDS;
 }
-
-
+export {Struct as Struct};
 
 // Test
 let Person = Struct([
