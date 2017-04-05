@@ -26,9 +26,26 @@ export interface Struct {
  get(attr?: number, index?: number): Value | Types.Value |
   Types.Value[]
  copyFrom: (source: Struct) => Struct;
- [prop: string]: any;
+ // [prop: string]: any;
+
+ //private
+ assign: (views: Types.View[], pos: number, length: number) => void;
+ assignPos: (pos: number) => void;
 };
 
-export interface StructContructable extends Struct {
- new (value?: Value): Struct;
+export interface StructClass {
+ Id: number;
+ N: number;
+ //  new (value?: Value): Struct;
+
+ // private
+ Offset: number[]
+ Counts: number[]
+ Bytes: number[]
+ Length: number[]
+ Name: string[]
+ Type: Types.Type[];
+ MaxBytes: number;
+ new (value?: Value, views?: Types.View[], pos?: number, length?: number)
+ : Struct;
 }

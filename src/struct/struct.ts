@@ -6,6 +6,7 @@ let invalidNames: string[] = [
  'set',
  'get',
  'copy',
+ // TODO
 ]
 let lastId: number = -1;
 
@@ -96,7 +97,7 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
   private readonly _id: number = Id;
   private _views: Types.View[];
   private _pos: number;
-  private _len: number;
+  private _length: number;
 
   static readonly Id: number = Id;
   static readonly Offset: number[] = Offset;
@@ -109,11 +110,11 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
   static readonly MaxBytes: number = MaxBytes;
 
   constructor(value?: Interfaces.Value, views?: Types.View[],
-  pos?: number, len?: number) {
+  pos?: number, length?: number) {
    if (views == null) {
     this._views = []
     this._pos = 0
-    this._len = 1
+    this._length = 1
     /* Note : Having multiple ArrayBuffers for each attribute is going to
     result in largest attribute the bottleneck max possible elements in an
     Array. Alternative is to share one ArrayBuffer for all attributes.
@@ -134,13 +135,21 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
      this._views.push(new Types.TypedArray[Type[i]][0](buffer));
     }
    } else {
-    this._views = views;
-    this._pos = pos as number ;
-    this._len = len as number;
+    this.assign(views, pos as number, length as number);
    }
    if (value != null) {
     this.set(value);
    }
+  }
+
+  public assign(views: Types.View[], pos: number, length: number) : void {
+   this._views = views;
+   this._pos = pos;
+   this._length = length;
+  }
+
+  public assignPos(pos: number) : void {
+   this._pos = pos;
   }
 
   public set(value: Interfaces.Value | Types.Value |
@@ -246,7 +255,6 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
     }
   });
  });
-
  return StructClass;
 }
 
