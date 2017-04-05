@@ -109,7 +109,7 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
   static readonly N: number = N;
   static readonly MaxBytes: number = MaxBytes;
 
-  constructor(value?: Interfaces.Value, views?: Types.View[],
+  constructor(value?: Interfaces.ValueRaw, views?: Types.View[],
   pos?: number, length?: number) {
    if (views == null) {
     this._views = []
@@ -152,7 +152,7 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
    this._pos = pos;
   }
 
-  public set(value: Interfaces.Value | Types.Value |
+  public set(value: Interfaces.ValueRaw | Types.Value |
   Types.Value[], attr?: number, index?: number)
   : Interfaces.Struct {
    if (attr != null) {
@@ -162,7 +162,7 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
    } else {
     for (let i = 0; i < N; ++i) {
      if ((value as Interfaces.Value)[Name[i]] != null) {
-      this._set((value as Interfaces.ValueRow)[Name[i]], i);
+      this._set((value as Interfaces.ValueRaw)[Name[i]], i);
      } else {
       throw new Error(`Missing attribute ${Name[i]} passed ` +
       `to set(): ${value}`);

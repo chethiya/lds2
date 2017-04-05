@@ -1,6 +1,5 @@
 import * as Types from './types';
-import {Struct} from './struct/struct';
-import * as Interfaces from './public_interfaces';
+import {Struct, Interfaces} from './struct/struct';
 import {Array as LDSArray} from './array';
 
 export let LDS = {
@@ -37,7 +36,7 @@ let Person = Struct([
  {name: 'height', type: Types.Float64}
 ]);
 
-let p : Interfaces.Struct = new Person({
+let p : Interfaces.StructExternal = new Person({
  name: [1, 2, 3],
  age: 29,
  height: 160
@@ -59,7 +58,7 @@ console.log(p.get());
 
 let p2: Interfaces.Struct = new Person();
 console.log(p2.get());
-p2.copyFrom(p);
+p2.copyFrom(p as Interfaces.Struct);
 console.log(p2.get());
 p.height = 23.3;
 console.log(p.get(), p2.get());

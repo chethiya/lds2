@@ -11,7 +11,7 @@ export interface Attribute {
  options?: Options;
 };
 
-export interface ValueRow {
+export interface ValueRaw {
  [prop: string]: Types.Value | Types.Value[];
 }
 
@@ -21,7 +21,7 @@ export interface Value {
 }
 
 export interface Struct {
- set(value: Value | Types.Value | Types.Value[], attr?: number,
+ set(value: ValueRaw | Types.Value | Types.Value[], attr?: number,
   index?: number): Struct;
  get(attr?: number, index?: number): Value | Types.Value |
   Types.Value[]
@@ -32,6 +32,15 @@ export interface Struct {
  assign: (views: Types.View[], pos: number, length: number) => void;
  assignPos: (pos: number) => void;
 };
+
+export interface StructExternal {
+ set(value: Value | Types.Value | Types.Value[], attr?: number,
+  index?: number): Struct;
+ get(attr?: number, index?: number): Value | Types.Value |
+  Types.Value[]
+ copyFrom: (source: Struct) => Struct;
+ [prop: string]: any;
+}
 
 export interface StructClass {
  Id: number;

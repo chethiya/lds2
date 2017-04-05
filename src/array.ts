@@ -8,7 +8,7 @@ class LDSArray {
 
  public StructClass: Interfaces.StructClass;
 
- public static readonly MaxBytes: number = 12;
+ public static readonly MaxBytes: number = 1<<29;
 
  constructor(type: Interfaces.StructClass, public length: number) {
   if ("number" == typeof type) {
@@ -19,7 +19,7 @@ class LDSArray {
   this._checkLength();
   this._views = [];
   for (let i=0; i < this.StructClass.N; ++i) {
-   let buffer = new ArrayBuffer(this.StructClass.Bytes[i]);
+   let buffer = new ArrayBuffer(this.StructClass.Bytes[i] * length);
    this._views.push(new Types.TypedArray[this.StructClass.Type[i]][0](buffer));
   }
   this._createStructs();
@@ -34,7 +34,7 @@ class LDSArray {
   }
   this._maxLength = Math.floor(LDSArray.MaxBytes / this.StructClass.MaxBytes);
   if (this.length > this._maxLength) {
-   throw(new Error(`Array definition with too large length: ${this.length}.` +
+   throw(new Error(`Array definition with too large length: ${this.length}. ` +
    `Max length for this Struct is: ${this._maxLength}`));
   }
  }
@@ -57,7 +57,7 @@ class LDSArray {
   return struct;
  }
 
- public set(value: Interfaces.Value, index: number) : LDSArray {
+ public set(value: Interfaces.ValueRaw, index: number) : LDSArray {
   this._struct.assignPos(index);
   this._struct.set(value);
   return this;

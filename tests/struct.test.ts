@@ -1,8 +1,7 @@
 // First argument to 'describe' (which is defined by Jasmine) is the testing module that will
 // appear in test reports. The second argument is a callback containing the individual tests.
 
-import { Struct } from './../src/struct/struct';
-import * as Interfaces from './../src/public_interfaces';
+import { Struct, Interfaces } from './../src/struct/struct';
 import * as Types from './../src/types';
 
 describe("Struct", function () {
@@ -12,7 +11,7 @@ describe("Struct", function () {
   { name: 'height', type: Types.Float64 }
  ]);
  it("init and assign", function () {
-  let p: Interfaces.Struct = new Person({
+  let p: Interfaces.StructExternal = new Person({
    name: [1, 2, 3],
    age: 29,
    height: 160
@@ -44,18 +43,18 @@ describe("Struct", function () {
  });
 
  it("copyFrom", function() {
-  let p: Interfaces.Struct = new Person({
+  let p: Interfaces.StructExternal = new Person({
    name: [1, 2, 3],
    age: 29,
    height: 160
   });
-  let p2: Interfaces.Struct = new Person();
+  let p2: Interfaces.StructExternal = new Person();
 
   expect((p2.get() as Interfaces.Value).toJSON()).toEqual({
    name: [0, 0, 0], age: 0, height: 0
   });
 
-  p2.copyFrom(p);
+  p2.copyFrom(p as Interfaces.Struct);
   expect((p2.get() as Interfaces.Value).toJSON()).toEqual({
    name: [1, 2, 3], age: 29, height: 160
   });
