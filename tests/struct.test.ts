@@ -1,7 +1,8 @@
 // First argument to 'describe' (which is defined by Jasmine) is the testing module that will
 // appear in test reports. The second argument is a callback containing the individual tests.
 
-import { Struct, Interfaces } from './../src/struct/struct';
+import { Struct } from './../src/struct/struct';
+import * as Interfaces from './../src/public_interfaces';
 import * as Types from './../src/types';
 
 describe("Struct", function () {
