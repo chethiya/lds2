@@ -34,12 +34,28 @@ describe("Array", function () {
 
  it("getRef", function() {
   let ref: Interfaces.StructExternal | undefined;
-  let N = 500;
+  let N = 999997;
   let arr = new LDSArray(Person, N);
   for (let i=0; i<N; ++i) {
    ref = arr.getRef(i, ref as Interfaces.Struct) as Interfaces.StructExternal;
-   ref.age = i;
+   ref.height = i;
   }
-  expect(arr.get(N-1).age).toEqual(N-1);
+  for (let i=0; i<N; ++i) {
+   expect(arr.get(i).height).toEqual(i);
+  }
+  for (let i=0; i<N / 10; ++i) {
+   let p = Math.floor(Math.random() * N);
+   ref = arr.getRef(p, ref as Interfaces.Struct) as Interfaces.StructExternal;
+   ref.age = 1;
+   ref.height = p * 2;
+
+   let p = Math.floor(Math.random() * N);
+   ref = arr.getRef(p, ref as Interfaces.Struct) as Interfaces.StructExternal;
+   if (ref.age == 1) {
+    expect(ref.height).toEqual(p * 2);
+   } else {
+    expect(ref.height).toEqual(p);
+   }
+  }
  });
 });
