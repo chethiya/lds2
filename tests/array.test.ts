@@ -49,7 +49,7 @@ describe("Array", function () {
    ref.age = 1;
    ref.height = p * 2;
 
-   let p = Math.floor(Math.random() * N);
+   p = Math.floor(Math.random() * N);
    ref = arr.getRef(p, ref as Interfaces.Struct) as Interfaces.StructExternal;
    if (ref.age == 1) {
     expect(ref.height).toEqual(p * 2);
