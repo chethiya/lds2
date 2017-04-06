@@ -10,6 +10,16 @@ describe("Struct", function () {
   { name: 'age', type: Types.Uint8 },
   { name: 'height', type: Types.Float64 }
  ]);
+ let CompareStruct: Interfaces.StructClass = Struct([
+  {
+   name: 'value',
+   type: Types.Int32
+  }
+ ], function (left: Interfaces.Struct, right: Interfaces.Struct): number {
+  return (right as Interfaces.StructExternal).value -
+   (left as Interfaces.StructExternal).value;
+ });
+
  it("init and assign", function () {
   let p: Interfaces.StructExternal = new Person({
    name: [1, 2, 3],
@@ -64,7 +74,36 @@ describe("Struct", function () {
 
   expect(p2.height).toEqual(160);
   expect((p2.get() as Interfaces.Value).height).toEqual(160);
- })
+ });
+
+ it("compare", function() {
+  // Struct without compare function
+  let p1: Interfaces.Struct, p2: Interfaces.Struct;
+  p1 = new Person();
+  p2 = new Person();
+  expect(p1.compare(p2)).toEqual(0);
+
+  (p1 as Interfaces.StructExternal).age = 12;
+  (p2 as Interfaces.StructExternal).age = 14;
+  expect(p1.compare(p2)).toBeLessThan(0);
+  expect(p2.compare(p1)).toBeGreaterThan(0);
+
+  (p1 as Interfaces.StructExternal).name = [0, 0, 100];
+  (p2 as Interfaces.StructExternal).name = [0, 0, 1];
+  expect(p1.compare(p2)).toBeGreaterThan(0);
+  expect(p2.compare(p1)).toBeLessThan(0);
+
+  p1.set(-1, Person._NAME, 1);
+  expect(p1.compare(p2)).toBeLessThan(0);
+  expect(p2.compare(p1)).toBeGreaterThan(0);
+
+
+  // Struct with compare function
+  let a: Interfaces.Struct, b: Interfaces.Struct;
+  a = new CompareStruct({value: 10});
+  b = new CompareStruct({value: 100});
+  expect(a.compare(b)).toBeGreaterThan(0);
+ });
 });
 
 /*

@@ -5,10 +5,17 @@ class LDSArray {
  private _views: Types.View[];
  private _maxLength: number;
  private _struct: Interfaces.Struct;
+ private static _tempStruct: Interfaces.Struct;
 
  public StructClass: Interfaces.StructClass;
 
  public static readonly MaxBytes: number = 1<<29;
+
+ private static _swap(left: Interfaces.Struct, right: Interfaces.Struct): void {
+  LDSArray._tempStruct.copyFrom(left);
+  left.copyFrom(right);
+  right.copyFrom(LDSArray._tempStruct);
+ }
 
  constructor(type: Interfaces.StructClass, public length: number) {
   if ("number" == typeof type) {
@@ -41,6 +48,7 @@ class LDSArray {
 
  private _createStructs(): void {
   this._struct = new this.StructClass(undefined, this._views, 0, this.length);
+  LDSArray._tempStruct = new this.StructClass();
  }
 
  public get(index: number) : Interfaces.Value {
@@ -61,6 +69,24 @@ class LDSArray {
   this._struct.assignPos(index);
   this._struct.set(value);
   return this;
+ }
+
+ public sort(compareFunc?: Interfaces.CompareFunction) {
+  let l: Interfaces.Struct =
+  new this.StructClass(undefined, this._views, 0, this.length);
+  let r: Interfaces.Struct =
+  new this.StructClass(undefined, this._views, 0, this.length);
+
+  for (let i=0; i<this.length; ++i) {
+   l.assignPos(i);
+   for (let j=i+1; j<this.length; ++j) {
+    r.assignPos(j);
+    if ((compareFunc != null && compareFunc(l, r) > 0) ||
+    (compareFunc == null && l.compare(r) > 0)) {
+     LDSArray._swap(l, r);
+    }
+   }
+  }
  }
 }
 
