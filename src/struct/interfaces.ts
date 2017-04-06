@@ -26,6 +26,7 @@ export interface Struct {
  get(attr?: number, index?: number): Value | Types.Value |
   Types.Value[]
  copyFrom: (source: Struct) => Struct;
+ compare: (right: Struct) => number;
  // [prop: string]: any;
 
  //private
@@ -39,6 +40,7 @@ export interface StructExternal {
  get(attr?: number, index?: number): Value | Types.Value |
   Types.Value[]
  copyFrom: (source: Struct) => Struct;
+ compare: (right: Struct) => number;
  [prop: string]: any;
 }
 
@@ -55,6 +57,10 @@ export interface StructClass {
  Name: string[]
  Type: Types.Type[];
  MaxBytes: number;
- new (value?: Value, views?: Types.View[], pos?: number, length?: number)
+ new (value?: ValueRaw, views?: Types.View[], pos?: number, length?: number)
  : Struct;
+}
+
+export interface CompareFunction {
+ (left: Struct, right: Struct) : number;
 }

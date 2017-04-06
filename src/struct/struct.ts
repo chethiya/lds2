@@ -44,7 +44,8 @@ function validateAttr(attrs: Interfaces.Attribute[]) : void {
  });
 }
 
-export function Struct(Attrs: Interfaces.Attribute[]) : any {
+export function Struct(Attrs: Interfaces.Attribute[],
+CompareFunc?: Interfaces.CompareFunction) : any {
  validateAttr(Attrs);
  let Id: number = ++lastId;
  let Offset: number[] = [];
@@ -236,6 +237,21 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
    }
    return this;
   }
+
+  // Default comparison method comapring attributes one by one
+  public compare(right: StructClass) : number {
+   let l, r;
+   for (let i=0; i<N; ++i) {
+    for (let j=0; j<Length[i]; ++j) {
+     // TODO string comparsion should be using StringRef
+     l = this._get(i, j);
+     r = right._get(i, j);
+     if (l < r) return -1; else
+     if (l > r) return 1; else continue;
+    }
+   }
+   return 0;
+  }
  }
 
  // setter and getters
@@ -255,6 +271,13 @@ export function Struct(Attrs: Interfaces.Attribute[]) : any {
     }
   });
  });
+
+ if (CompareFunc != null) {
+  (StructClass.prototype as any).compare = function(this: StructClass,
+  right: Interfaces.Struct) {
+   return CompareFunc(this, right);
+  }
+ }
  return StructClass;
 }
 
