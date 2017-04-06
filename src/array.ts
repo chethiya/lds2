@@ -5,6 +5,10 @@ class LDSArray {
  private _views: Types.View[];
  private _maxLength: number;
  private _struct: Interfaces.Struct;
+ private _pivot: Interfaces.Struct;
+ private _leftwall: Interfaces.Struct;
+ private _compareFunc: Interfaces.CompareFunction;
+
  private static _tempStruct: Interfaces.Struct;
 
  public StructClass: Interfaces.StructClass;
@@ -47,7 +51,12 @@ class LDSArray {
  }
 
  private _createStructs(): void {
+  // Array references
   this._struct = new this.StructClass(undefined, this._views, 0, this.length);
+  this._pivot = new this.StructClass(undefined, this._views, 0, this.length);
+  this._leftwall = new this.StructClass(undefined, this._views, 0, this.length);
+
+  // temport data out of array
   LDSArray._tempStruct = new this.StructClass();
  }
 
@@ -71,22 +80,68 @@ class LDSArray {
   return this;
  }
 
- public sort(compareFunc?: Interfaces.CompareFunction) {
+ private _bubbleSort(compareFunc?: Interfaces.CompareFunction): void {
   let l: Interfaces.Struct =
   new this.StructClass(undefined, this._views, 0, this.length);
   let r: Interfaces.Struct =
   new this.StructClass(undefined, this._views, 0, this.length);
 
   for (let i=0; i<this.length; ++i) {
-   l.assignPos(i);
+   this._sortGetRef(i, l);
    for (let j=i+1; j<this.length; ++j) {
-    r.assignPos(j);
+    this._sortGetRef(j, r);
     if ((compareFunc != null && compareFunc(l, r) > 0) ||
     (compareFunc == null && l.compare(r) > 0)) {
      LDSArray._swap(l, r);
     }
    }
   }
+ }
+
+ private _qsortPartition(l: number, r: number) : number {
+  this._sortGetRef(r, this._pivot); // pivot
+  let i = l - 1;
+  for (let j=l; j < r; ++j) {
+   this._sortGetRef(j, this._struct); // get current
+
+   // compare current and pivot
+   if (
+    (this._compareFunc != null &&
+    this._compareFunc(this._struct, this._pivot) <= 0)
+   ||
+    (this._compareFunc == null && this._struct.compare(this._pivot) <= 0)
+   ) {
+    // if current smaller than pivot move left wall and swap
+    this._sortGetRef(++i, this._leftwall);
+    LDSArray._swap(this._leftwall, this._struct);
+   }
+  }
+  this._sortGetRef(++i, this._leftwall);
+  LDSArray._swap(this._leftwall, this._pivot);
+  return i;
+ }
+
+ private _qsort(l: number, r: number) : void {
+  if (l < r) {
+   // TODO if (r - l < 10) do bubble sort
+   let p = this._qsortPartition(l, r);
+   this._qsort(l, p - 1);
+   this._qsort(p + 1, r);
+  }
+ }
+
+ private _quickSort(compareFunc?: Interfaces.CompareFunction) : void {
+  this._qsort(0, this.length - 1);
+ }
+
+ // Child classes should override this
+ protected _sortGetRef(index: number, struct: Interfaces.Struct) {
+  struct.assignPos(index);
+ }
+
+ public sort(compareFunc?: Interfaces.CompareFunction) : void {
+  //this._bubbleSort(compareFunc);
+  this._quickSort(compareFunc);
  }
 }
 
