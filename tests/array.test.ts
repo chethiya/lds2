@@ -70,14 +70,31 @@ describe("Array", function () {
  });
 
  it("sort", function() {
-  let N = 1000
+  let N = 1000;
   let arr = new LDSArray(CompareStruct, N);
+
+  // Reverse sort
   for (let i=0; i<N; ++i) {
    arr.set({value: i}, i);
   }
   arr.sort();
   for (let i=0; i<N; ++i) {
    expect(arr.get(i).value).toEqual(N-i-1);
+  }
+
+  // Sort random values
+  let ref: Interfaces.Struct | undefined;
+  for (let i=0; i<N; ++i) {
+   ref = arr.getRef(i, ref);
+   (ref as Interfaces.StructExternal).value = Math.round(Math.random() * N);
+  }
+  arr.sort();
+  let cur: number, last = -1;
+  for (let i=N-1; i>-1; --i) {
+   ref = arr.getRef(i, ref);
+   cur = (ref as any).value;
+   expect(cur).toBeGreaterThanOrEqual(last);
+   last = cur;
   }
  })
 });
