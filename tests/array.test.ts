@@ -3,7 +3,6 @@ import {Array as LDSArray} from './../src/array';
 import * as Types from './../src/types';
 
 describe("Array", function () {
- let MAX = 1<<30;
  let Person = Struct([
   { name: 'name', type: Types.Int32, length: 3 },
   { name: 'age', type: Types.Uint8 },
@@ -86,7 +85,7 @@ describe("Array", function () {
   jsArr = [];
   for (let i=0; i<N; ++i) {
    ref = arr.getRef(i, ref);
-   value = Math.round(Math.random() * MAX);
+   value = Math.round(Math.random() * N / 4);
    jsArr.push(value);
    sum += value;
    (ref as Interfaces.StructExternal).value = value;
