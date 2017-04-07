@@ -7,7 +7,9 @@ class LDSArray {
  private _struct: Interfaces.Struct;
  private _pivot: Interfaces.Struct;
  private _leftwall: Interfaces.Struct;
+ private _cur: Interfaces.Struct[];
  private _compareFunc: Interfaces.CompareFunction | null;
+
 
  private static _tempStruct: Interfaces.Struct;
 
@@ -55,6 +57,10 @@ class LDSArray {
   this._struct = new this.StructClass(undefined, this._views, 0, this.length);
   this._pivot = new this.StructClass(undefined, this._views, 0, this.length);
   this._leftwall = new this.StructClass(undefined, this._views, 0, this.length);
+  this._cur = [
+   new this.StructClass(undefined, this._views, 0, this.length),
+   new this.StructClass(undefined, this._views, 0, this.length)
+  ];
 
   // temport data out of array
   LDSArray._tempStruct = new this.StructClass();
@@ -98,6 +104,31 @@ class LDSArray {
   }
  }
 
+ private _insertSort(l: number, r: number) {
+  let j: number;
+  let cur = 0, next = 1;
+  for (let i=l+1; i<=r; ++i) {
+   this._sortGetRef(i, this._cur[next]);
+   for (let j=i-1; j>=l; --j) {
+    cur = next;
+    next = (next + 1) % 2;
+    this._sortGetRef(j, this._cur[next]);
+    if (
+     (
+      this._compareFunc != null &&
+      this._compareFunc(this._cur[next], this._cur[cur]) <= 0
+     ) ||
+     (
+      this._compareFunc == null && this._cur[next].compare(this._cur[cur]) <= 0
+     )
+    ) {
+     break;
+    }
+    LDSArray._swap(this._cur[cur], this._cur[next]);
+   }
+  }
+ }
+
  private _qsortPartition(l: number, r: number) : number {
   this._sortGetRef(r, this._pivot); // pivot
   let i = l - 1;
@@ -123,8 +154,8 @@ class LDSArray {
 
  private _qsort(l: number, r: number) : void {
   if (l < r) {
-   if (r - l < -1) {
-    this._bubbleSort(l, r); //TODO should be insertion sort
+   if (r - l <= 10) {
+    this._insertSort(l, r);
    } else {
     let p = this._qsortPartition(l, r);
     this._qsort(l, p - 1);
@@ -142,6 +173,7 @@ class LDSArray {
 
   this._qsort(0, this.length - 1);
   //this._bubbleSort(0, this.length - 1);
+  //this._insertSort(0, this.length - 1);
  }
 
  //TODO Child classes should override this
