@@ -107,8 +107,8 @@ class LDSArray {
    // compare current and pivot
    if (
     (this._compareFunc != null &&
-    this._compareFunc(this._struct, this._pivot) <= 0)
-   ||
+     this._compareFunc(this._struct, this._pivot) <= 0)
+    ||
     (this._compareFunc == null && this._struct.compare(this._pivot) <= 0)
    ) {
     // if current smaller than pivot move left wall and swap
