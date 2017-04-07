@@ -69,24 +69,21 @@ describe("Array", function () {
   }
  });
 
- it("sort", function() {
-  let N = 9997;
-  let arr = new LDSArray(CompareStruct, N);
+ let N = 9997;
+ let arr: LDSArray;
+ let sum: number = 0;
+ let jsArr: number[];
 
-  // Reverse sort
-  for (let i=0; i<N; ++i) {
-   arr.set({value: i}, i);
-  }
-  arr.sort();
-  for (let i=0; i<N; ++i) {
-   expect(arr.get(i).value).toEqual(N-i-1);
-  }
+ let initArr = function() {
+  arr = new LDSArray(CompareStruct, N)
+ }
 
-  // Sort random values
-  let sum: number = 0;
-  let ref: Interfaces.Struct | undefined;
+ // Sort random values
+ let setRandom = function() {
   let value: number;
-  let jsArr = [];
+  let ref: Interfaces.Struct | undefined;
+  sum = 0;
+  jsArr = [];
   for (let i=0; i<N; ++i) {
    ref = arr.getRef(i, ref);
    value = Math.round(Math.random() * MAX);
@@ -97,38 +94,58 @@ describe("Array", function () {
   console.time("js sort");
   jsArr.sort((a, b) => a - b);
   console.timeEnd("js sort");
+ }
 
-  console.time("LDS_sort_struct_compare");
-  arr.sort();
-  console.timeEnd("LDS_sort_struct_compare");
+ let checkSort = function(asc: boolean) {
   let cur: number, last = -1;
   let s: number = 0;
-  for (let i=N-1; i>-1; --i) {
+  let ref: Interfaces.Struct | undefined;
+
+  for (let i=(asc?0:N-1); (asc?(i<N):(i>-1)); (asc?++i:--i)) {
    ref = arr.getRef(i, ref);
    cur = (ref as any).value;
    expect(cur).toBeGreaterThanOrEqual(last);
-   expect(cur).toEqual(jsArr[N-i-1]);
+   expect(cur).toEqual(asc ? jsArr[i] : jsArr[N-i-1]);
    last = cur;
    s += cur;
   }
   expect(s).toEqual(sum);
+ }
+
+ it("sort", function() {
+  initArr();
+
+  // Reverse sort
+  for (let i=0; i<N; ++i) {
+   arr.set({value: i}, i);
+  }
+  arr.sort();
+  for (let i=0; i<N; ++i) {
+   expect(arr.get(i).value).toEqual(N-i-1);
+  }
+
+  // Sort using a compare function in struct
+  setRandom();
+  console.time("LDS_sort_struct_compare");
+  arr.sort();
+  console.timeEnd("LDS_sort_struct_compare");
+  checkSort(false);
+
 
   // Sort using a custom compare function
+  setRandom();
   console.time("LDS_sort_custom_compare");
   arr.sort((left: Interfaces.Struct, right: Interfaces.Struct): number =>
    (left as any).value - (right as any).value
   );
   console.timeEnd("LDS_sort_custom_compare");
-  last = -1;
-  s = 0;
-  for (let i=0; i<N; ++i) {
-   ref = arr.getRef(i, ref);
-   cur = (ref as any).value;
-   expect(cur).toBeGreaterThanOrEqual(last);
-   expect(cur).toEqual(jsArr[i]);
-   s += cur;
-   last = cur;
-  }
-  expect(s).toEqual(sum);
+  checkSort(true);
+
+  // Sort using a compare function in struct on reversed items
+  console.time("LDS_sort_struct_compare_on_reverse");
+  arr.sort();
+  console.timeEnd("LDS_sort_struct_compare_on_reverse");
+  checkSort(false);
+
  })
 });
