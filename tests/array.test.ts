@@ -85,7 +85,7 @@ describe("Array", function () {
   jsArr = [];
   for (let i=0; i<N; ++i) {
    ref = arr.getRef(i, ref);
-   value = Math.round(Math.random() * N / 4);
+   value = Math.round(Math.random() * N / 3);
    jsArr.push(value);
    sum += value;
    (ref as Interfaces.StructExternal).value = value;
@@ -145,6 +145,31 @@ describe("Array", function () {
   arr.sort();
   console.timeEnd("LDS_sort_struct_compare_on_reverse");
   checkSort(false);
+ });
 
- })
+ it("sort large array", function() {
+  let N = 99997;
+  let arr = new LDSArray(CompareStruct, N);
+  let ref: Interfaces.Struct | undefined;
+  let jsArr = []
+  let value: number;
+  for (let i=0; i<N; ++i) {
+   ref = arr.getRef(i, ref);
+   value = Math.floor(Math.random() * N / 3);
+   (ref as any).value = value;
+   jsArr.push(value);
+  }
+  console.time("large sort - js native");
+  jsArr.sort((a, b) => a - b);
+  console.timeEnd("large sort - js native");
+
+  console.time("large sort - LDS");
+  arr.sort();
+  console.timeEnd("large sort - LDS");
+
+  for (let i=N-1; i>-1; --i) {
+   ref = arr.getRef(i, ref);
+   expect((ref as any).value).toEqual(jsArr[N-i-1]);
+  }
+ });
 });

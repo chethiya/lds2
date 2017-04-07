@@ -153,13 +153,29 @@ class LDSArray {
  }
 
  private _qsort(l: number, r: number) : void {
+  let stackSize = 2 * Math.ceil(Math.log(this.length) / Math.log(2));
+  let stack: number[][] = [new Array(stackSize), new Array(stackSize)];
+  let pos = -1;
+  let p;
   if (l < r) {
+   stack[0][++pos] = l;
+   stack[1][pos] = r;
+  }
+  while (pos >= 0) {
+   l = stack[0][pos];
+   r = stack[1][pos--];
    if (r - l <= 10) {
     this._insertSort(l, r);
    } else {
-    let p = this._qsortPartition(l, r);
-    this._qsort(l, p - 1);
-    this._qsort(p + 1, r);
+    p = this._qsortPartition(l, r);
+    if (p + 1 < r) {
+     stack[0][++pos] = p + 1;
+     stack[1][pos] = r
+    }
+    if (l < p - 1) {
+     stack[0][++pos] = l;
+     stack[1][pos] = p - 1;
+    }
    }
   }
  }
