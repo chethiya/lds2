@@ -83,18 +83,42 @@ describe("Array", function () {
   }
 
   // Sort random values
+  let sum: number = 0;
   let ref: Interfaces.Struct | undefined;
+  let value: number;
   for (let i=0; i<N; ++i) {
    ref = arr.getRef(i, ref);
-   (ref as Interfaces.StructExternal).value = Math.round(Math.random() * N);
+   value = Math.round(Math.random() * N);
+   sum += value;
+   (ref as Interfaces.StructExternal).value = value;
   }
   arr.sort();
   let cur: number, last = -1;
+  let s: number = 0;
   for (let i=N-1; i>-1; --i) {
    ref = arr.getRef(i, ref);
    cur = (ref as any).value;
    expect(cur).toBeGreaterThanOrEqual(last);
    last = cur;
+   s += cur;
   }
+  expect(s).toEqual(sum);
+
+  // Sort using a custom compare function
+  arr.sort(
+   function(left: Interfaces.Struct, right: Interfaces.Struct) : number {
+    return (left as any).value - (right as any).value;
+   }
+  );
+  last = -1;
+  s = 0;
+  for (let i=0; i<N; ++i) {
+   ref = arr.getRef(i, ref);
+   cur = (ref as any).value;
+   expect(cur).toBeGreaterThanOrEqual(last);
+   s += cur;
+   last = cur;
+  }
+  expect(s).toEqual(sum);
  })
 });

@@ -7,7 +7,7 @@ class LDSArray {
  private _struct: Interfaces.Struct;
  private _pivot: Interfaces.Struct;
  private _leftwall: Interfaces.Struct;
- private _compareFunc: Interfaces.CompareFunction;
+ private _compareFunc: Interfaces.CompareFunction | null;
 
  private static _tempStruct: Interfaces.Struct;
 
@@ -80,19 +80,19 @@ class LDSArray {
   return this;
  }
 
- private _bubbleSort(compareFunc?: Interfaces.CompareFunction): void {
-  let l: Interfaces.Struct =
-  new this.StructClass(undefined, this._views, 0, this.length);
-  let r: Interfaces.Struct =
-  new this.StructClass(undefined, this._views, 0, this.length);
-
+ private _bubbleSort(l: number, r: number): void {
   for (let i=0; i<this.length; ++i) {
-   this._sortGetRef(i, l);
+   this._sortGetRef(i, this._leftwall);
    for (let j=i+1; j<this.length; ++j) {
-    this._sortGetRef(j, r);
-    if ((compareFunc != null && compareFunc(l, r) > 0) ||
-    (compareFunc == null && l.compare(r) > 0)) {
-     LDSArray._swap(l, r);
+    this._sortGetRef(j, this._struct);
+    if (
+     (this._compareFunc != null &&
+     this._compareFunc(this._leftwall, this._struct) > 0)
+    ||
+     (this._compareFunc == null &&
+     this._leftwall.compare(this._struct) > 0)
+    ) {
+     LDSArray._swap(this._leftwall, this._struct);
     }
    }
   }
@@ -123,25 +123,30 @@ class LDSArray {
 
  private _qsort(l: number, r: number) : void {
   if (l < r) {
-   // TODO if (r - l < 10) do bubble sort
-   let p = this._qsortPartition(l, r);
-   this._qsort(l, p - 1);
-   this._qsort(p + 1, r);
+   if (r - l < -1) {
+    this._bubbleSort(l, r); //TODO should be insertion sort
+   } else {
+    let p = this._qsortPartition(l, r);
+    this._qsort(l, p - 1);
+    this._qsort(p + 1, r);
+   }
   }
  }
 
- private _quickSort(compareFunc?: Interfaces.CompareFunction) : void {
+ public sort(compareFunc?: Interfaces.CompareFunction) : void {
+  if (compareFunc != null) {
+   this._compareFunc = compareFunc;
+  } else {
+   this._compareFunc = null;
+  }
+
   this._qsort(0, this.length - 1);
+  //this._bubbleSort(0, this.length - 1);
  }
 
- // Child classes should override this
+ //TODO Child classes should override this
  protected _sortGetRef(index: number, struct: Interfaces.Struct) {
   struct.assignPos(index);
- }
-
- public sort(compareFunc?: Interfaces.CompareFunction) : void {
-  //this._bubbleSort(compareFunc);
-  this._quickSort(compareFunc);
  }
 }
 
