@@ -284,4 +284,31 @@ CompareFunc?: Interfaces.CompareFunction) : any {
  return StructClass;
 }
 
+function getPrimitive(type: Types.Type) : Interfaces.StructClass  {
+ let Class = Struct([
+  {
+   name: "value",
+   type: type
+  }
+ ]); // TODO string compare
+
+ Class.prototype.set = function (this: Interfaces.Struct,
+  value: Types.Value): Interfaces.Struct {
+   (this as any)._set(value, 0);
+   return this;
+ }
+
+ Class.prototype.get =
+  function (this: Interfaces.Struct): Types.Value {
+   return (this as any)._get(0);
+  }
+
+ return Class;
+}
+
+export let Primitives : any = {};
+for (let i=0; i < Types.nTypes; ++i) {
+ Primitives[i] = getPrimitive(i);
+}
+
 export {Interfaces as Interfaces};

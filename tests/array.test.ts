@@ -33,7 +33,7 @@ describe("Array", function () {
    }, i);
   }
   for (let i=N-1; i>=0; --i) {
-   expect(arr.get(i).toJSON()).toEqual({
+   expect((arr.get(i) as Interfaces.Value).toJSON()).toEqual({
     name: [i, 0, 0],
     age: i+30,
     height: 150 + i
@@ -50,7 +50,7 @@ describe("Array", function () {
    ref.height = i;
   }
   for (let i=0; i<N; ++i) {
-   expect(arr.get(i).height).toEqual(i);
+   expect((arr.get(i) as Interfaces.Value).height).toEqual(i);
   }
   for (let i=0; i<N / 10; ++i) {
    let p = Math.floor(Math.random() * N);
@@ -120,7 +120,7 @@ describe("Array", function () {
   }
   arr.sort();
   for (let i=0; i<N; ++i) {
-   expect(arr.get(i).value).toEqual(N-i-1);
+   expect((arr.get(i) as Interfaces.Value).value).toEqual(N-i-1);
   }
 
   // Sort using a compare function in struct

@@ -62,5 +62,6 @@ export interface StructClass {
 }
 
 export interface CompareFunction {
- (left: Struct, right: Struct) : number;
+ (left: Struct | Types.Value, right: Struct | Types.Value):
+  number;
 }

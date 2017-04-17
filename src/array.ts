@@ -1,4 +1,4 @@
-import {Struct, Interfaces} from './struct/struct';
+import {Struct, Interfaces, Primitives} from './struct/struct';
 import * as Types from './types';
 
 class LDSArray {
@@ -23,9 +23,12 @@ class LDSArray {
   right.copyFrom(LDSArray._tempStruct);
  }
 
- constructor(type: Interfaces.StructClass, public length: number) {
+ constructor(private type: Interfaces.StructClass | Types.Type, public length: number) {
   if ("number" == typeof type) {
-   // TODO
+   this.StructClass = Primitives[type];
+   if (this.StructClass == null) {
+    throw new Error(`Invalid primitive ${type}`);
+   }
   } else {
    this.StructClass = type;
   }
@@ -66,7 +69,7 @@ class LDSArray {
   LDSArray._tempStruct = new this.StructClass();
  }
 
- public get(index: number) : Interfaces.Value {
+ public get(index: number) : Interfaces.Value | Types.Value {
   this._struct.assignPos(index);
   return this._struct.get() as Interfaces.Value;
  }
@@ -80,7 +83,8 @@ class LDSArray {
   return struct;
  }
 
- public set(value: Interfaces.ValueRaw, index: number) : LDSArray {
+ public set(value: Interfaces.ValueRaw | Types.Value,
+  index: number): LDSArray {
   this._struct.assignPos(index);
   this._struct.set(value);
   return this;
@@ -182,7 +186,14 @@ class LDSArray {
 
  public sort(compareFunc?: Interfaces.CompareFunction) : void {
   if (compareFunc != null) {
-   this._compareFunc = compareFunc;
+   // If type is Types.Value then wrap function
+   if ('number' == typeof this.type) {
+    this._compareFunc = (left: Interfaces.Struct, right: Interfaces.Struct): number =>
+     compareFunc(left.get() as Types.Value,
+      right.get() as Types.Value);
+   } else {
+    this._compareFunc = compareFunc;
+   }
   } else {
    this._compareFunc = null;
   }
