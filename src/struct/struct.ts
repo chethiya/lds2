@@ -3,9 +3,12 @@ import * as Interfaces from './interfaces';
 
 let nameRegex = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 let invalidNames: string[] = [
+ 'assign',
+ 'assignPos',
  'set',
  'get',
- 'copy',
+ 'copyFrom',
+ 'compare'
  // TODO
 ]
 let lastId: number = -1;
