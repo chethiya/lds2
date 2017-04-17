@@ -32,20 +32,20 @@ class LDSArray {
   this._checkLength();
   this._views = [];
   for (let i=0; i < this.StructClass.N; ++i) {
-   let buffer = new ArrayBuffer(this.StructClass.Bytes[i] * length);
+   let buffer = new ArrayBuffer(this.StructClass.Bytes[i] * this.length);
    this._views.push(new Types.TypedArray[this.StructClass.Type[i]][0](buffer));
   }
   this._createStructs();
  }
 
  private _checkLength() : void {
+  this._maxLength = Math.floor(LDSArray.MaxBytes / this.StructClass.MaxBytes);
+  if (this.length == 0) {
+   this.length = this._maxLength;
+  }
   if (this.length < 0 || this.length != Math.floor(this.length)) {
    throw(new Error(`Array definition with invalid length: ${this.length}`));
   }
-  if (this.length == 0) {
-   // TODO max length??
-  }
-  this._maxLength = Math.floor(LDSArray.MaxBytes / this.StructClass.MaxBytes);
   if (this.length > this._maxLength) {
    throw(new Error(`Array definition with too large length: ${this.length}. ` +
    `Max length for this Struct is: ${this._maxLength}`));
@@ -62,7 +62,7 @@ class LDSArray {
    new this.StructClass(undefined, this._views, 0, this.length)
   ];
 
-  // temport data out of array
+  // temporary data out of array
   LDSArray._tempStruct = new this.StructClass();
  }
 
