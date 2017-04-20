@@ -57,6 +57,7 @@ export interface StructClass {
  Name: string[]
  Type: Types.Type[];
  MaxBytes: number;
+ MaxLength: number;
  new (value?: ValueRaw, views?: Types.View[], pos?: number, length?: number)
  : Struct;
 }

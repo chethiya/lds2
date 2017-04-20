@@ -16,6 +16,8 @@ let lastId: number = -1;
 let invalidMap: {[key: string]: boolean} = {};
 invalidNames.forEach(name => invalidMap[name] = true);
 
+let ArrayMaxBytes: number = 1<<29;
+
 function validateAttr(attrs: Interfaces.Attribute[]) : void {
  if (!Array.isArray(attrs) || attrs.length == 0) {
   throw new Error(`Invalid struct definition ${attrs}`);
@@ -59,6 +61,7 @@ CompareFunc?: Interfaces.CompareFunction) : any {
  let Type: Types.Type[] = [];
  let N: number = 0;
  let MaxBytes = 0;
+ let MaxLength = 0;
 
  // Init struct constants
  N = Attrs.length;
@@ -72,6 +75,7 @@ CompareFunc?: Interfaces.CompareFunction) : any {
   Offset.push(Offset[i] + Bytes[i]);
  });
  MaxBytes = Math.max.apply(Math, Bytes);
+ MaxLength = Math.floor(ArrayMaxBytes / MaxBytes);
 
 
  /* ValueObejct that's returned from get() method */
@@ -112,13 +116,15 @@ CompareFunc?: Interfaces.CompareFunction) : any {
   static readonly Type: Types.Type[] = Type;
   static readonly N: number = N;
   static readonly MaxBytes: number = MaxBytes;
+  static readonly MaxLength: number = MaxLength;
 
   constructor(value?: Interfaces.ValueRaw, views?: Types.View[],
   pos?: number, length?: number) {
    if (views == null) {
-    this._views = []
-    this._pos = 0
-    this._length = 1
+    this._views = [];
+    this._pos = 0;
+    this._length = 1;
+
     /* Note : Having multiple ArrayBuffers for each attribute is going to
     result in largest attribute the bottleneck max possible elements in an
     Array. Alternative is to share one ArrayBuffer for all attributes.
@@ -178,18 +184,23 @@ CompareFunc?: Interfaces.CompareFunction) : any {
 
   private _set(value: Types.Value | Types.Value[], attr: number,
   index?: number) {
+   let v: number = Math.floor(this._pos / MaxLength);
+   let p: number = this._pos - MaxLength * v;
+   v *= N;
    if (Length[attr] == 1) {
-    this._views[attr][this._pos] = value as Types.Value;
+    this._views[v + attr][p] = value as Types.Value;
    } else {
-    let offset = this._pos * Length[attr];
+    let offset = p * Length[attr];
     if (Array.isArray(value)) {
      let l = Math.min(Length[attr], value.length);
      for (let j=0; j<l; ++j) {
-      this._views[attr][offset + j] = value[j];
+      this._views[v + attr][offset + j] = value[j];
      }
     } else {
-     if (index == null) index = 0;
-     this._views[attr][offset + index] = value;
+     if (index == null) {
+      index = 0;
+     }
+     this._views[v + attr][offset + index] = value;
     }
    }
   }
@@ -209,15 +220,18 @@ CompareFunc?: Interfaces.CompareFunction) : any {
 
   private _get(attr: number, index?: number): Types.Value |
   Types.Value[] {
+   let v: number = Math.floor(this._pos / MaxLength);
+   let p: number = this._pos - MaxLength * v;
+   v *= N;
    if (Length[attr] == 1) {
-    return this._views[attr][this._pos];
+    return this._views[v + attr][p];
    } else if (index != null) {
-    return this._views[attr][this._pos * Length[attr] + index];
+    return this._views[v + attr][p * Length[attr] + index];
    } else {
     let arr: Types.Value[] = new Array(Length[attr]);
-    let offset: number = this._pos * Length[attr];
+    let offset: number = p * Length[attr];
     for (let j=0; j<Length[attr]; ++j) {
-     arr[j] = this._views[attr][offset + j];
+     arr[j] = this._views[v + attr][offset + j];
     }
     return arr;
    }
@@ -228,12 +242,17 @@ CompareFunc?: Interfaces.CompareFunction) : any {
     throw new Error("Copying from incompativle struct");
    }
    let s, t : number = 0;
+   let sv, tv: number;
+   tv = Math.floor(this._pos / MaxLength);
+   sv = Math.floor(ref._pos / MaxLength);
    for (let i=0; i < N; ++i) {
     // Note: a copy() method in ArrayBuffer would be have been nice
-    s = this._pos * Counts[i];
-    t = ref._pos * Counts[i];
+    t = (this._pos - tv * MaxLength) * Counts[i];
+    s = (ref._pos - sv * MaxLength) * Counts[i];
+    let tvv = tv * N + i;
+    let svv = sv * N + i;
     for (let j=0; j < Counts[i]; ++j, ++s, ++t) {
-     this._views[i][s] = ref._views[i][t];
+     this._views[tvv][t] = ref._views[svv][s];
     }
 
     //TODO if type is string release string references

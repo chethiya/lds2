@@ -3,6 +3,7 @@ import * as Types from './types';
 
 class LDSArray {
  private _views: Types.View[];
+ private length: number;
  private _maxLength: number;
  private _struct: Interfaces.Struct;
  private _pivot: Interfaces.Struct;
@@ -12,10 +13,9 @@ class LDSArray {
 
 
  private static _tempStruct: Interfaces.Struct;
+ private static readonly INIT_ARRAY_SIZE: number = 128;
 
  public StructClass: Interfaces.StructClass;
-
- public static readonly MaxBytes: number = 1<<29;
 
  private static _swap(left: Interfaces.Struct, right: Interfaces.Struct): void {
   LDSArray._tempStruct.copyFrom(left);
@@ -23,7 +23,8 @@ class LDSArray {
   right.copyFrom(LDSArray._tempStruct);
  }
 
- constructor(private type: Interfaces.StructClass | Types.Type, public length: number) {
+ constructor(private type: Interfaces.StructClass | Types.Type,
+  length?: number) {
   if ("number" == typeof type) {
    this.StructClass = Primitives[type];
    if (this.StructClass == null) {
@@ -32,26 +33,30 @@ class LDSArray {
   } else {
    this.StructClass = type;
   }
-  this._checkLength();
-  this._views = [];
-  for (let i=0; i < this.StructClass.N; ++i) {
-   let buffer = new ArrayBuffer(this.StructClass.Bytes[i] * this.length);
-   this._views.push(new Types.TypedArray[this.StructClass.Type[i]][0](buffer));
-  }
+  this._initViews(length);
   this._createStructs();
  }
 
- private _checkLength() : void {
-  this._maxLength = Math.floor(LDSArray.MaxBytes / this.StructClass.MaxBytes);
-  if (this.length == 0) {
-   this.length = this._maxLength;
+ private _initViews(length?: number) {
+  this._maxLength = this.StructClass.MaxLength;
+  if (length == null || length == 0) {
+   this.length = LDSArray.INIT_ARRAY_SIZE;
+  } else {
+   this.length = length;
+   if (this.length < 0 || this.length != Math.floor(this.length)) {
+    throw(new Error(`Array definition with invalid length: ${this.length}`));
+   }
   }
-  if (this.length < 0 || this.length != Math.floor(this.length)) {
-   throw(new Error(`Array definition with invalid length: ${this.length}`));
-  }
-  if (this.length > this._maxLength) {
-   throw(new Error(`Array definition with too large length: ${this.length}. ` +
-   `Max length for this Struct is: ${this._maxLength}`));
+
+  this._views = [];
+  let size, remain: number = this.length;
+  while (remain > 0) {
+   size = remain % this._maxLength;
+   remain -= size;
+   for (let i = 0; i < this.StructClass.N; ++i) {
+    let buffer = new ArrayBuffer(this.StructClass.Bytes[i] * size);
+    this._views.push(new Types.TypedArray[this.StructClass.Type[i]][0](buffer));
+   }
   }
  }
 
