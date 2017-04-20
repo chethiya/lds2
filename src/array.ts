@@ -3,7 +3,8 @@ import * as Types from './types';
 
 class LDSArray {
  private _views: Types.View[];
- private length: number;
+ private _size: number;
+ public length: number;
  private _maxLength: number;
  private _struct: Interfaces.Struct;
  private _pivot: Interfaces.Struct;
@@ -40,16 +41,28 @@ class LDSArray {
  private _initViews(length?: number) {
   this._maxLength = this.StructClass.MaxLength;
   if (length == null || length == 0) {
-   this.length = LDSArray.INIT_ARRAY_SIZE;
+   this._size = LDSArray.INIT_ARRAY_SIZE;
+   this.length = 0;
   } else {
    this.length = length;
    if (this.length < 0 || this.length != Math.floor(this.length)) {
     throw(new Error(`Array definition with invalid length: ${this.length}`));
    }
+   if (this.length <= this._maxLength) {
+    this._size = LDSArray.INIT_ARRAY_SIZE;
+    while (this._size < this.length) {
+     this._size *= 2;
+    }
+   } else {
+    this._size = this._maxLength * (
+     Math.floor(this.length / this._maxLength) +
+     (this.length % this._maxLength > 0 ? 1 : 0)
+    );
+   }
   }
 
   this._views = [];
-  let size, remain: number = this.length;
+  let size, remain: number = this._size;
   while (remain > 0) {
    size = remain % this._maxLength;
    remain -= size;
@@ -75,6 +88,10 @@ class LDSArray {
  }
 
  public get(index: number) : Interfaces.Value | Types.Value {
+  if (index < 0 || index >= this.length) {
+   throw new Error(`Getting array out of bound.
+   index: ${index}, length: ${this.length}`);
+  }
   this._struct.assignPos(index);
   return this._struct.get() as Interfaces.Value;
  }
@@ -90,8 +107,44 @@ class LDSArray {
 
  public set(value: Interfaces.ValueRaw | Types.Value,
   index: number): LDSArray {
+  if (index < 0 || index >= this.length) {
+   throw new Error(`Setting array out of bound.
+   index: ${index}, length: ${this.length}`);
+  }
   this._struct.assignPos(index);
   this._struct.set(value);
+  return this;
+ }
+
+ public push(value?: Interfaces.ValueRaw | Types.Value): LDSArray {
+  // Extend array when running out of allocated arrayss
+  if (this._size == this.length) {
+   if (this._size < this._maxLength) {
+    // Create new array of size this._size * 2 and copy everything form existing
+    for (let i = 0; i < this.StructClass.N; ++i) {
+     let buffer = new ArrayBuffer(this.StructClass.Bytes[i] * this._size * 2);
+     let view = new Types.TypedArray[this.StructClass.Type[i]][0](buffer);
+     for (let j=0; j<this._size * this.StructClass.Counts[i]; ++j) {
+      view[j] = this._views[i][j];
+     }
+     this._views[i] = view; // No view offset when this._size < this._maxLength
+    }
+    this._size *= 2;
+   } else {
+    // Double the array size
+    for (let i = 0; i < this.StructClass.N; ++i) {
+     let buffer = new ArrayBuffer(this.StructClass.Bytes[i] * this._maxLength);
+     this._views.push(new Types.TypedArray[this.StructClass.Type[i]][0](buffer));
+    }
+    this._size += this._maxLength
+   }
+  }
+
+  this.length++; // Increase array length
+  // Assign value
+  if (value != null) {
+   this.set(value, this.length - 1);
+  }
   return this;
  }
 
@@ -208,8 +261,8 @@ class LDSArray {
   //this._insertSort(0, this.length - 1);
  }
 
- //TODO Child classes should override this
- protected _sortGetRef(index: number, struct: Interfaces.Struct) {
+ // TODO No need to have this function
+ private _sortGetRef(index: number, struct: Interfaces.Struct) {
   struct.assignPos(index);
  }
 }

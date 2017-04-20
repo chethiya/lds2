@@ -17,6 +17,8 @@ let invalidMap: {[key: string]: boolean} = {};
 invalidNames.forEach(name => invalidMap[name] = true);
 
 let ArrayMaxBytes: number = 1<<29;
+let ArrayMaxBytesPos: number = 29;
+let MIN_LENGTH = 128;
 
 function validateAttr(attrs: Interfaces.Attribute[]) : void {
  if (!Array.isArray(attrs) || attrs.length == 0) {
@@ -76,7 +78,15 @@ CompareFunc?: Interfaces.CompareFunction) : any {
  });
  MaxBytes = Math.max.apply(Math, Bytes);
  MaxLength = Math.floor(ArrayMaxBytes / MaxBytes);
-
+ for (let i=ArrayMaxBytesPos; i>0; --i) {
+  if ((MaxLength & (1<<i)) > 0) {
+   MaxLength = 1<<i;
+   break;
+  }
+ }
+ if (MaxLength < MIN_LENGTH) {
+  throw new Error(`MaxLength of tpyie is smallers than ${MIN_LENGTH}`);
+ }
 
  /* ValueObejct that's returned from get() method */
  class ValueObject implements Interfaces.Value {
