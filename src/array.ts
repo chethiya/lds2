@@ -64,7 +64,11 @@ class LDSArray {
   this._views = [];
   let size, remain: number = this._size;
   while (remain > 0) {
-   size = remain % this._maxLength;
+   if (remain >= this._maxLength) {
+    size = this._maxLength;
+   } else {
+    size = remain;
+   }
    remain -= size;
    for (let i = 0; i < this.StructClass.N; ++i) {
     let buffer = new ArrayBuffer(this.StructClass.Bytes[i] * size);

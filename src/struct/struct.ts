@@ -16,8 +16,8 @@ let lastId: number = -1;
 let invalidMap: {[key: string]: boolean} = {};
 invalidNames.forEach(name => invalidMap[name] = true);
 
-let ArrayMaxBytes: number = 1<<29;
-let ArrayMaxBytesPos: number = 29;
+let ArrayMaxBytesPos: number = 18; // TODO increase to 29 in build script
+let ArrayMaxBytes: number = 1 << ArrayMaxBytesPos;
 let MIN_LENGTH = 128;
 
 function validateAttr(attrs: Interfaces.Attribute[]) : void {
