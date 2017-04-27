@@ -1,4 +1,4 @@
-function toUTF8Array(str: string) {
+function stringToUtf8(str: string) {
  let utf8 = [];
  for (let i = 0; i < str.length; i++) {
   let charcode: number = str.charCodeAt(i);
@@ -24,7 +24,7 @@ function toUTF8Array(str: string) {
  return utf8;
 }
 
-function toString(utf8: number[]) {
+function utf8ToString(utf8: number[]) {
  let charcodes: number[] = [];
  let code: number = 0;
  for (let i = 0; i < utf8.length; ++i) {
@@ -58,21 +58,21 @@ function toHex(arr: number[]) {
 }
 
 let s = 'Chethiya';
-let a = toUTF8Array(s);
-console.log(s, a, toString(a));
+let a = stringToUtf8(s);
+console.log(s, a, utf8ToString(a));
 
 
 s = '𝟘'; // not ascii 0
-a = toUTF8Array(s);
-console.log(s, s.length, a, toString(a));
+a = stringToUtf8(s);
+console.log(s, s.length, a, utf8ToString(a));
 
 s = '«';
-a = toUTF8Array(s);
-console.log(s, s.charCodeAt(0).toString(16), toHex(a), toString(a));
+a = stringToUtf8(s);
+console.log(s, s.charCodeAt(0).toString(16), toHex(a), utf8ToString(a));
 
 // Unicode test string suggested at
 // http://stackoverflow.com/questions/1343223/what-makes-a-good-test-string-for-testing-web-forms-for-unicode-compatibility
 s = 'Testing «ταБЬℓσ»: 1<2 & 4+1>3, now 20% off!'
-a = toUTF8Array(s);
-console.log(s, toString(a), '\nMatches: ', toString(a) == s);
+a = stringToUtf8(s);
+console.log(s, utf8ToString(a), '\nMatches: ', utf8ToString(a) == s);
 
