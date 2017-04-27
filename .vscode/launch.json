@@ -27,6 +27,14 @@
   {
    "type": "node",
    "request": "launch",
+   "name": "utf8",
+   "program": "${workspaceRoot}/dist/src/string/utf8.js",
+   "outFiles": ["${workspaceRoot}/dist/src/**/*.js"],
+   "sourceMaps": true
+  },
+  {
+   "type": "node",
+   "request": "launch",
    "name": "Launch Program",
    "program": "${workspaceRoot}/dist/src/lds.js",
    "outFiles": ["${workspaceRoot}/dist/src/**/*.js"],
