@@ -1,7 +1,7 @@
 import {Struct, Interfaces, Primitives} from './struct/struct';
 import * as Types from './types';
 
-class LDSArray {
+class ArrayList {
  private _views: Types.View[];
  private _size: number;
  public length: number;
@@ -19,9 +19,9 @@ class LDSArray {
  public StructClass: Interfaces.StructClass;
 
  private static _swap(left: Interfaces.Struct, right: Interfaces.Struct): void {
-  LDSArray._tempStruct.copyFrom(left);
+  ArrayList._tempStruct.copyFrom(left);
   left.copyFrom(right);
-  right.copyFrom(LDSArray._tempStruct);
+  right.copyFrom(ArrayList._tempStruct);
  }
 
  constructor(private type: Interfaces.StructClass | Types.Type,
@@ -41,15 +41,15 @@ class LDSArray {
  private _initViews(length?: number) {
   this._maxLength = this.StructClass.MaxLength;
   if (length == null || length == 0) {
-   this._size = LDSArray.INIT_ARRAY_SIZE;
+   this._size = ArrayList.INIT_ARRAY_SIZE;
    this.length = 0;
   } else {
    this.length = length;
    if (this.length < 0 || this.length != Math.floor(this.length)) {
-    throw(new Error(`Array definition with invalid length: ${this.length}`));
+    throw(new Error(`ArrayList definition with invalid length: ${this.length}`));
    }
    if (this.length <= this._maxLength) {
-    this._size = LDSArray.INIT_ARRAY_SIZE;
+    this._size = ArrayList.INIT_ARRAY_SIZE;
     while (this._size < this.length) {
      this._size *= 2;
     }
@@ -88,12 +88,12 @@ class LDSArray {
   ];
 
   // temporary data out of array
-  LDSArray._tempStruct = new this.StructClass();
+  ArrayList._tempStruct = new this.StructClass();
  }
 
  public get(index: number) : Interfaces.Value | Types.Value {
   if (index < 0 || index >= this.length) {
-   throw new Error(`Getting array out of bound.
+   throw new Error(`ArrayList::get out of bound.
    index: ${index}, length: ${this.length}`);
   }
   this._struct.assignPos(index);
@@ -110,9 +110,9 @@ class LDSArray {
  }
 
  public set(value: Interfaces.ValueRaw | Types.Value,
-  index: number): LDSArray {
+  index: number): ArrayList {
   if (index < 0 || index >= this.length) {
-   throw new Error(`Setting array out of bound.
+   throw new Error(`ArrayList::set out of bound.
    index: ${index}, length: ${this.length}`);
   }
   this._struct.assignPos(index);
@@ -120,8 +120,8 @@ class LDSArray {
   return this;
  }
 
- public push(value?: Interfaces.ValueRaw | Types.Value): LDSArray {
-  // Extend array when running out of allocated arrayss
+ public push(value?: Interfaces.ValueRaw | Types.Value): ArrayList {
+  // Extend array when running out of allocated arrays
   if (this._size == this.length) {
    if (this._size < this._maxLength) {
     // Create new array of size this._size * 2 and copy everything form existing
@@ -164,7 +164,7 @@ class LDSArray {
      (this._compareFunc == null &&
      this._leftwall.compare(this._struct) > 0)
     ) {
-     LDSArray._swap(this._leftwall, this._struct);
+     ArrayList._swap(this._leftwall, this._struct);
     }
    }
   }
@@ -190,7 +190,7 @@ class LDSArray {
     ) {
      break;
     }
-    LDSArray._swap(this._cur[cur], this._cur[next]);
+    ArrayList._swap(this._cur[cur], this._cur[next]);
    }
   }
  }
@@ -210,11 +210,11 @@ class LDSArray {
    ) {
     // if current smaller than pivot move left wall and swap
     this._sortGetRef(++i, this._leftwall);
-    LDSArray._swap(this._leftwall, this._struct);
+    ArrayList._swap(this._leftwall, this._struct);
    }
   }
   this._sortGetRef(++i, this._leftwall);
-  LDSArray._swap(this._leftwall, this._pivot);
+  ArrayList._swap(this._leftwall, this._pivot);
   return i;
  }
 
@@ -271,4 +271,4 @@ class LDSArray {
  }
 }
 
-export {LDSArray as Array};
+export {ArrayList as ArrayList};

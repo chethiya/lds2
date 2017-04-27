@@ -1,6 +1,6 @@
 import * as Types from './types';
 import {Struct, Interfaces} from './struct/struct';
-import {Array as LDSArray} from './array';
+import {ArrayList as ArrayList} from './array_list';
 
 export let LDS = {
  Types: {
@@ -12,7 +12,7 @@ export let LDS = {
   String: Types.String
  },
  Struct: Struct,
- Array: LDSArray
+ ArrayList: ArrayList
 }
 
 declare let module: any;
@@ -27,7 +27,7 @@ else if (window) {
  (window as any)["LDS"] = LDS;
 }
 export {Struct as Struct};
-export {LDSArray as Array};
+export {ArrayList as Array};
 
 // Test
 let Person = Struct([

@@ -1,5 +1,5 @@
 import { Struct, Interfaces } from './../src/struct/struct';
-import {Array as LDSArray} from './../src/array';
+import {ArrayList as ArrayList} from './../src/array_list';
 import * as Types from './../src/types';
 
 describe("Array", function () {
@@ -18,13 +18,13 @@ describe("Array", function () {
  );
 
  it("create", function () {
-  let arr = new LDSArray(Person, 10);
+  let arr = new ArrayList(Person, 10);
   expect(arr.length).toEqual(10);
  });
 
  it("set/get", function() {
   let N = 10;
-  let arr = new LDSArray(Person, N);
+  let arr = new ArrayList(Person, N);
   for (let i=0; i<N; ++i) {
    arr.set({
     name: [i],
@@ -44,7 +44,7 @@ describe("Array", function () {
  it("getRef", function() {
   let ref: Interfaces.StructExternal | undefined;
   let N = 999997;
-  let arr = new LDSArray(Person, N);
+  let arr = new ArrayList(Person, N);
   for (let i=0; i<N; ++i) {
    ref = arr.getRef(i, ref as Interfaces.Struct) as Interfaces.StructExternal;
    ref.height = i;
@@ -69,12 +69,12 @@ describe("Array", function () {
  });
 
  let N = 9997;
- let arr: LDSArray;
+ let arr: ArrayList;
  let sum: number = 0;
  let jsArr: number[];
 
  let initArr = function() {
-  arr = new LDSArray(CompareStruct, N)
+  arr = new ArrayList(CompareStruct, N)
  }
 
  // Sort random values
@@ -149,7 +149,7 @@ describe("Array", function () {
 
  it("sort large array", function() {
   let N = 99997;
-  let arr = new LDSArray(CompareStruct, N);
+  let arr = new ArrayList(CompareStruct, N);
   let ref: Interfaces.Struct | undefined;
   let jsArr = []
   let value: number;

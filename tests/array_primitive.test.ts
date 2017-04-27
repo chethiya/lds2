@@ -1,16 +1,16 @@
 import { Struct, Interfaces } from './../src/struct/struct';
-import {Array as LDSArray} from './../src/array';
+import {ArrayList as ArrayList} from './../src/array_list';
 import * as Types from './../src/types';
 
 describe("PrimitiveArray", function () {
  it("create", function () {
-  let arr = new LDSArray(Types.Int32, 10);
+  let arr = new ArrayList(Types.Int32, 10);
   expect(arr.length).toEqual(10);
  });
 
  it("set/get", function() {
   let N = 10;
-  let arr = new LDSArray(Types.Int32, N);
+  let arr = new ArrayList(Types.Int32, N);
   for (let i=0; i<N; ++i) {
    arr.set(i + 100, i);
   }
@@ -20,12 +20,12 @@ describe("PrimitiveArray", function () {
  });
 
  let N = 9997;
- let arr: LDSArray;
+ let arr: ArrayList;
  let sum: number = 0;
  let jsArr: number[];
 
  let initArr = function() {
-  arr = new LDSArray(Types.Int32, N)
+  arr = new ArrayList(Types.Int32, N)
  }
 
  // Sort random values
@@ -95,7 +95,7 @@ describe("PrimitiveArray", function () {
 
  it("sort large array", function() {
   let N = 99997;
-  let arr = new LDSArray(Types.Int32, N);
+  let arr = new ArrayList(Types.Int32, N);
   let jsArr = []
   let value: number;
   for (let i=0; i<N; ++i) {
